@@ -52,3 +52,10 @@
                            :headers {"PRIVATE-TOKEN" private-token}}))
 
 ;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
+
+(defn get-pipeline [base-url private-token project-id pipeline-id]
+  (let [url (str base-url "/api/v4/projects/" project-id "/pipelines/" pipeline-id)
+        response @(http/get url
+                            {:query-params {:per_page 100}
+                             :headers {"PRIVATE-TOKEN" private-token}})]
+    (json/read-str (:body response) :key-fn keyword)))
