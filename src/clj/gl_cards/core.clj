@@ -3,20 +3,19 @@
             [clojure.string :as str]
             [org.httpkit.client :as http]))
 
-
-(defn link-header-map [link-header]
-
-  (defn rel-link-to-key-val-pair [rel-link]
+(defn -rel-link-to-key-val-pair [rel-link]
     ;; Now I have two problems
     (let [[_ link rel] (re-matches #".*\<(.+)\>.+rel=\"(.+)\"" rel-link)]
       [(keyword rel) link]))
 
+(defn -link-header-map [link-header]
+
   (if link-header
     (let [links (str/split link-header #",")]
-      (apply hash-map (flatten (map rel-link-to-key-val-pair links))))
+      (apply hash-map (flatten (map -rel-link-to-key-val-pair links))))
     {}))
 
-(defn get-paginated-resource
+(defn -get-paginated-resource
   ;; FIXME need to log errors/truncations somewhere
   ;; Also FIXME this was the first thing I thought of, is it nice?
   [url opts]
@@ -32,7 +31,7 @@
       (if (= 200 status)
         
         (let [resources (concat acc (json/read-str body :key-fn keyword))]
-          (if-let [next-url (:next (link-header-map link))]
+          (if-let [next-url (:next (-link-header-map link))]
             (recur resources next-url {:headers (:headers opts)})
             
             resources))
@@ -41,14 +40,14 @@
 
 (defn get-projects
   [base-url private-token]
-  (get-paginated-resource (str base-url "/api/v4/projects")
+  (-get-paginated-resource (str base-url "/api/v4/projects")
                           {:query-params {:membership true
                                           :per_page 100}
                            :headers      {"PRIVATE-TOKEN" private-token}}))
 
 (defn get-pipelines
   [base-url private-token project-id]
-  (get-paginated-resource (str base-url "/api/v4/projects/" project-id "/pipelines")
+  (-get-paginated-resource (str base-url "/api/v4/projects/" project-id "/pipelines")
                           {:query-params {:per_page 100}
                            :headers {"PRIVATE-TOKEN" private-token}}))
 
