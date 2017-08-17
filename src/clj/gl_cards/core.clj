@@ -7,6 +7,7 @@
 (defn link-header-map [link-header]
 
   (defn rel-link-to-key-val-pair [rel-link]
+    ;; Now I have two problems
     (let [[_ link rel] (re-matches #".*\<(.+)\>.+rel=\"(.+)\"" rel-link)]
       [(keyword rel) link]))
 
@@ -16,13 +17,13 @@
     {}))
 
 (defn get-paginated-resource
+  ;; FIXME need to log errors/truncations somewhere
+  ;; Also FIXME this was the first thing I thought of, is it nice?
   [url opts]
 
   (loop [acc []
          url url
          opts opts]
-
-    (println "JGG-DEBUG: (get-paginated-resource " url " " opts ")")
     
     (let [response @(http/get url opts)
           {:keys [status headers body]} response
@@ -51,11 +52,12 @@
                           {:query-params {:per_page 100}
                            :headers {"PRIVATE-TOKEN" private-token}}))
 
-;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
-
 (defn get-pipeline [base-url private-token project-id pipeline-id]
+  ;; FIXME deal with errors better
   (let [url (str base-url "/api/v4/projects/" project-id "/pipelines/" pipeline-id)
         response @(http/get url
                             {:query-params {:per_page 100}
                              :headers {"PRIVATE-TOKEN" private-token}})]
     (json/read-str (:body response) :key-fn keyword)))
+
+;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
