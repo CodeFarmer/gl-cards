@@ -21,6 +21,8 @@
   (loop [acc []
          url url
          opts opts]
+
+    (println "JGG-DEBUG: (get-paginated-resource " url " " opts ")")
     
     (let [response @(http/get url opts)
           {:keys [status headers body]} response
@@ -37,8 +39,16 @@
         acc))))
 
 (defn get-projects
-  ([base-url private-token]
-   (get-paginated-resource (str base-url "/api/v4/projects")
-                           {:query-params {:membership true
-                                           :per_page 100}
-                            :headers      {"PRIVATE-TOKEN" private-token}})))
+  [base-url private-token]
+  (get-paginated-resource (str base-url "/api/v4/projects")
+                          {:query-params {:membership true
+                                          :per_page 100}
+                           :headers      {"PRIVATE-TOKEN" private-token}}))
+
+(defn get-pipelines
+  [base-url private-token project-id]
+  (get-paginated-resource (str base-url "/api/v4/projects/" project-id "/pipelines")
+                          {:query-params {:per_page 100}
+                           :headers {"PRIVATE-TOKEN" private-token}}))
+
+;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
