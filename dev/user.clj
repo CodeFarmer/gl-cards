@@ -1,5 +1,6 @@
 (ns user
   (:require [gl-cards.application]
+            [gl-cards.core]
             [com.stuartsierra.component :as component]
             [figwheel-sidecar.config :as fw-config]
             [figwheel-sidecar.system :as fw-sys]
