@@ -59,4 +59,35 @@
                              :headers {"PRIVATE-TOKEN" private-token}})]
     (json/read-str (:body response) :key-fn keyword)))
 
+(defn get-most-recent-pipeline [base-url private-token project-id ref]
+  (let [url (str base-url "/api/v4/projects/" project-id "/pipelines")
+        response @(http/get url
+                            {:query-params {:per-page 1
+                                            :ref ref}
+                             :headers {"PRIVATE-TOKEN" private-token}})]
+    (first (json/read-str (:body response) :key-fn keyword))))
+
+(defn -first-project-with-path [path projects]
+  (first (filter #(= path (:path_with_namespace %)) projects)))
+
+(defn find-projects-with-paths [paths projects]
+  (map #(-first-project-with-path % projects) paths))
+
+;; This is boneheaded and serial. FIXME
+;; Also FIXME get refs other than master
+(defn cards [base-url private-token projects]
+  (map (fn [project] {:name (:path_with_namespace project)
+                      :status (:status (get-most-recent-pipeline base-url private-token (:id project) "master"))}) projects))
+
+;; TODO now figure out how to pass the asynchronicity all the way through
+;; using a nice future mapping :)
+
+
+;; (use 'gl-cards.core :reload)
+;; (def projects (get-projects "http://gitlab.com" "SOME_PRIVATE_TOKEN"))
 ;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
+;; (get-most-recent-pipeline "http://gitlab.com" "SOME_PRIVATE_TOKEN" 3818378 "master")
+;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
+;; (def paths ["seatwave-repos/checkout/api" "seatwave-repos/checkout/app" "seatwave-repos/checkout/ui-library"])
+;; (find-projects-with-paths paths projects)
+;; (def c (cards "http://gitlab.com" "6kgsrgmhzF1zHftH_vj_" (find-projects-with-paths paths projects)))
