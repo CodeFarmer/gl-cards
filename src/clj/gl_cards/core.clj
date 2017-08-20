@@ -59,13 +59,13 @@
                              :headers {"PRIVATE-TOKEN" private-token}})]
     (json/read-str (:body response) :key-fn keyword)))
 
-(defn get-most-recent-pipeline [base-url private-token project-id ref]
-  (let [url (str base-url "/api/v4/projects/" project-id "/pipelines")
-        response @(http/get url
-                            {:query-params {:per-page 1
-                                            :ref ref}
-                             :headers {"PRIVATE-TOKEN" private-token}})]
-    (first (json/read-str (:body response) :key-fn keyword))))
+(defn -get-most-recent-pipeline [base-url private-token project-id ref]
+  "Return a future eventually containing a JSON list with one member"
+  (let [url (str base-url "/api/v4/projects/" project-id "/pipelines")]
+    (http/get url
+              {:query-params {:per-page 1
+                              :ref ref}
+               :headers {"PRIVATE-TOKEN" private-token}})))
 
 (defn -first-project-with-path [path projects]
   (first (filter #(= path (:path_with_namespace %)) projects)))
@@ -75,18 +75,22 @@
   "ref-spec looks like {:path \"seatwave-repos/checkout/ui-library\" :ref \"master\"}"
   (map #(assoc % :project-id (:id (-first-project-with-path (:path %) projects))) ref-specs))
 
-;; This is boneheaded and serial. FIXME
-(defn cards [base-url private-token projects]
-  (map (fn [card] (assoc card :status (:status (get-most-recent-pipeline base-url private-token (:project-id card) (:ref card))))) projects))
+(defn update-cards-with-pipelines [base-url private-token cards]
+  ;; scatter
+  (let [futures (map #(-get-most-recent-pipeline base-url private-token (:project-id %) (:ref %)) cards)]
+    ;; gather
+    (map (fn [card resp]
+           (assoc card :pipeline (first (json/read-str (:body @resp) :key-fn keyword))))
+         cards futures)))
 
 ;; TODO now figure out how to pass the asynchronicity all the way through
 ;; using a nice future mapping :)
 
 
 ;; (use 'gl-cards.core :reload)
-;; (def projects (get-projects "http://gitlab.com" "SOME_PRIVATE_TOKEN"))
+;; (def projects (get-projects "http://gitlab.com" "6kgsrgmhzF1zHftH_vj_"))
 ;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
-;; (get-most-recent-pipeline "http://gitlab.com" "SOME_PRIVATE_TOKEN" 3818378 "master")
+;; (get-most-recent-pipeline "http://gitlab.com" "6kgsrgmhzF1zHftH_vj_" 3818378 "master")
 ;; (filter #(re-find #"checkout/api" (:path_with_namespace %)) projects)
 ;; (def pathspecs [{:path "seatwave-repos/checkout/api" :ref "master"} {:path "seatwave-repos/checkout/app" :ref "master"} {:path "seatwave-repos/checkout/ui-library" :ref "master"}])
 ;; (def c (cards "http://gitlab.com" "6kgsrgmhzF1zHftH_vj_" (assoc-project-ids-with-paths pathspecs projects)))
