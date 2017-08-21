@@ -8,9 +8,11 @@ the hot reloading loveliness.
 
 To build and run the docker image from scratch:
 
+```bash
 $ lein uberjar
 $ docker build -t glc .
 $ docker run --name glc -p8080:8080 -eGL_CARDS_GITLAB_PAT=INSERT_YOUR_ACCESS_TOKEN_HERE glc
+```
 
 Then point your browser at localhost:8080
 
