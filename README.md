@@ -19,8 +19,8 @@ Then point your browser at localhost:8080
 ## Code
 
 * The UI is defined in src/cljs/gl_cards/core.cljs
-* The main server is in src/clj/gl_cards/application.js
-* Interface with the Gitlab API is in src/clj/gl_cards/core.js
+* The main server is in src/clj/gl_cards/application.clj
+* Interface with the Gitlab API is in src/clj/gl_cards/core.clj
 * Stylesheet is resources/public/css/style.css
 
 ## Running
