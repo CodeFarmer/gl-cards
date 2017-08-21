@@ -1,23 +1,19 @@
 (ns gl-cards.application
   (:gen-class)
-  (:require [com.stuartsierra.component :as component]
-            [system.components.endpoint :refer [new-endpoint]]
-            [system.components.handler :refer [new-handler]]
-            [system.components.middleware :refer [new-middleware]]
-            [system.components.http-kit :refer [new-web-server]]
-            [gl-cards.config :refer [config]]
-            [gl-cards.routes :refer [home-routes]]
-            [gl-cards.core :refer [assoc-project-ids-with-paths get-projects update-cards-with-pipelines]]
-            [gl-cards.state :refer [app-state]]))
+  (:require [clojure.data.json :as json]
+            [clojure.java.io :as io]
+            [compojure.core :refer [GET defroutes]]
+            [compojure.route :refer [resources]]
+            [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+            [ring.middleware.gzip :refer [wrap-gzip]]
+            [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+            [ring.middleware.logger :refer [wrap-with-logger]]
+            [ring.util.response :refer [response]]
+            [environ.core :refer [env]]
+            [ring.adapter.jetty :refer [run-jetty]]
+            [gl-cards.core :refer [assoc-project-ids-with-paths get-projects update-cards-with-pipelines]]))
 
-(defn app-system [config]
-  (component/system-map
-   :routes     (new-endpoint home-routes)
-   :middleware (new-middleware {:middleware (:middleware config)})
-   :handler    (-> (new-handler)
-                   (component/using [:routes :middleware]))
-   :http       (-> (new-web-server (:http-port config))
-                   (component/using [:handler]))))
+(def app-state (atom {}))
 
 (defn state-poller [state-atom key fn delay-millis]
   "Create a thread that will regularly call a function and update the atom with its result"
@@ -27,11 +23,38 @@
                (println state-atom)
                (Thread/sleep delay-millis)))))
 
-(defn -main [& _]
-  (let [config (config)]
-    (-> config
-        app-system
-        component/start)
+(defroutes routes
+   
+  (GET "/" _
+       (-> "public/index.html"
+           io/resource
+           io/input-stream
+           response
+           (assoc :headers {"Content-Type" "text/html; charset=utf-8"})))
+
+  (GET "/cards" _
+       (assoc (response (json/write-str (:cards @app-state)))
+              :headers {"Content-Type" "application/json; charset=utf-8"}))
+   
+  (resources "/"))
+
+(defn wrap-json-body-keys [handler]
+  (wrap-json-body handler {:keywords? true}))
+
+(def http-handler
+  (-> routes
+      (wrap-defaults api-defaults)
+      wrap-json-response
+      wrap-json-body-keys
+      wrap-with-logger
+      wrap-gzip))
+
+(defn -main [port & _]
+  
+  (let [port (Integer. (or port (env :port) 10555))]
+    (run-jetty http-handler {:port port :join? false}))
+  
+  (let [config (json/read-str (slurp "config.json"))]
     
     (println "Started gl-cards on" (str "http://localhost:" (:http-port config)))
     (println "Apologies for the lengthy startup, loading many projects we don't care about because Gitlab...")
