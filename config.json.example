@@ -1,0 +1,21 @@
+{
+    
+    "base_url": "http://gitlab.com",
+    "private_token": "INSERT_PRIVATE_TOKE_HERE",
+    "poll_interval": 5,
+    
+    "cards": [
+	{
+	    "path": "seatwave-repos/checkout/api",
+	    "ref":  "master"
+	},
+	{
+	    "path": "seatwave-repos/checkout/app",
+	    "ref":  "master"
+	},
+	{
+	    "path": "seatwave-repos/checkout/ui-library",
+	    "ref":  "master"
+	}	  
+    ]
+}
