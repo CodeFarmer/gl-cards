@@ -57,7 +57,8 @@
     
     (println "Apologies for the lengthy startup, loading many projects we don't care about because Gitlab...")
     
-    (let [{:keys [base_url private_token cards]} config
+    (let [{:keys [base_url cards]} config
+          private_token (env :gl-cards-gitlab-pat)
           projects (get-projects base_url private_token)
           project-cards (assoc-project-ids-with-paths cards projects)]
 

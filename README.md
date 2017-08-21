@@ -15,4 +15,4 @@ the hot reloading loveliness.
 
 ## Running
 
-Expects a config.json file (sample provided; you will need a working Gitlab Personal Access Token) in the working directory. First and only command-line argument is a port number, otherwise will default to 10555.
+Expects a config.json file (sample provided) in the working directory; you will need a working Gitlab Personal Access Token in this in the GL_CARDS_GITLAB_PAT environment variable. First and only command-line argument is a port number, otherwise will default to 10555.
