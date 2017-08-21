@@ -30,7 +30,7 @@
   (om/component
    (dom/span nil
              (dom/div #js {:className (get-card-class data)}
-                      (:path data) (dom/br nil)
+                      (dom/span #js {:className "repo-path"} (:path data)) (dom/br nil)
                       (:ref data) (dom/br nil)
                       (:status (:pipeline data)) (dom/br nil)))))
 

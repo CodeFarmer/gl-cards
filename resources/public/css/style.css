@@ -16,6 +16,7 @@ div {
     background-color: lightgrey;
     float:left;
     margin: 2px;
+    text-align: center;
 }
 
 .failing {
@@ -24,4 +25,8 @@ div {
 
 .succeeding {
     background: green;
+}
+
+.repo-path {
+    font-weight: bold;
 }
