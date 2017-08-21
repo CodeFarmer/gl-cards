@@ -18,14 +18,21 @@
       (swap! app-state assoc :cards (js->clj body)))))
 
 ;; FIXME
-(poll-cards!)
+(defonce timer (.setInterval js/window poll-cards! 5000))
+
+(defn get-card-class [data]
+  (case (:status (:pipeline data))
+    "failed" "card failing"
+    "succeeded" "card succeeding"
+    "card"))
 
 (defn pipeline-card [data owner]
   (om/component
    (dom/span nil
-             (dom/div nil (:path data))
-             (dom/div nil (:ref data))
-             (dom/div nil (:status (:pipeline data))))))
+             (dom/div #js {:className (get-card-class data)}
+                      (:path data) (dom/br nil)
+                      (:ref data) (dom/br nil)
+                      (:status (:pipeline data)) (dom/br nil)))))
 
 (defn cards-list [data owner]
   (om/component
