@@ -23,7 +23,7 @@
 (defn get-card-class [data]
   (case (:status (:pipeline data))
     "failed" "card failing"
-    "succeeded" "card succeeding"
+    "success" "card succeeding"
     "card"))
 
 (defn pipeline-card [data owner]
