@@ -6,6 +6,14 @@ Monitor Gitlab CI pipelines and make red/green cards
 Get Leiningen. You will need a JDK. Best to run using 'lein figwheel' for all
 the hot reloading loveliness.
 
+To build and run the docker image from scratch:
+
+$ lein uberjar
+$ docker build -t glc .
+$ docker run --name glc -p8080:8080 -eGL_CARDS_GITLAB_PAT=INSERT_YOUR_ACCESS_TOKEN_HERE glc
+
+Then point your browser at localhost:8080
+
 ## Code
 
 * The UI is defined in src/cljs/gl_cards/core.cljs
