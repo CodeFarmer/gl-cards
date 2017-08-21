@@ -20,7 +20,6 @@
   (Thread. (fn []
              (while true
                (swap! state-atom assoc key (fn))
-               (println state-atom)
                (Thread/sleep delay-millis)))))
 
 (defroutes routes
@@ -49,22 +48,26 @@
       wrap-with-logger
       wrap-gzip))
 
-(defn -main [port & _]
-  
-  (let [port (Integer. (or port (env :port) 10555))]
-    (run-jetty http-handler {:port port :join? false}))
-  
-  (let [config (json/read-str (slurp "config.json"))]
+(defn -start []
+  (let [config (json/read-str (slurp "config.json") :key-fn keyword)]
     
-    (println "Started gl-cards on" (str "http://localhost:" (:http-port config)))
     (println "Apologies for the lengthy startup, loading many projects we don't care about because Gitlab...")
     
     (let [{:keys [base_url private_token cards]} config
           projects (get-projects base_url private_token)
           project-cards (assoc-project-ids-with-paths cards projects)]
 
-      (println "Loaded.")
+      (println "Loaded" (count projects) "projects;" (count project-cards) "cards.")
       (swap! app-state assoc :cards project-cards)
       (println app-state)
-      (println "Starting pipeline state poller...")
-      (.start (state-poller app-state :cards (partial update-cards-with-pipelines base_url private_token project-cards) 5000)))))
+      (println "Starting pipeline state poller thread...")
+      (.start (state-poller app-state :cards (partial update-cards-with-pipelines base_url private_token project-cards) 5000))
+      (println "Started."))))
+
+
+(defn -main [& [port]]
+  
+  (let [port (Integer. (or port (env :port) 10555))]
+    (run-jetty http-handler {:port port :join? false}))
+  
+  (-start))

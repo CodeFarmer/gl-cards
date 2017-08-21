@@ -67,6 +67,7 @@
   :figwheel {:http-server-root "public"
              
              :css-dirs ["resources/public/css"]
+             :init user/lein-figwheel-init
              :ring-handler user/http-handler
              :server-logfile "log/figwheel.log"}
 

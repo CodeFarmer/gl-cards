@@ -40,6 +40,7 @@
 
 (defn get-projects
   [base-url private-token]
+  
   (-get-paginated-resource (str base-url "/api/v4/projects")
                           {:query-params {:membership true
                                           :per_page 100}
