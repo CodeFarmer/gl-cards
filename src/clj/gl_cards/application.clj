@@ -15,12 +15,16 @@
 
 (def app-state (atom {}))
 
+
 (defn state-poller [state-atom key fn delay-millis]
   "Create a thread that will regularly call a function and update the atom with its result"
-  (Thread. (fn []
-             (while true
-               (swap! state-atom assoc key (fn))
-               (Thread/sleep delay-millis)))))
+
+  (defn polling-loop []
+    (while true
+      (swap! state-atom assoc key (fn))
+      (Thread/sleep delay-millis)))
+
+  (Thread. polling-loop)) ;; for some reason (Thread. (fn [] (while ...))) executes the while loop before creating the thread! But defn works.
 
 (defroutes routes
    
